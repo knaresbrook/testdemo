@@ -14,48 +14,55 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
  
-  stages:
-  - stage: Stage1
-    displayName: Stage1
-    dependsOn: []
-    jobs:
-      steps:
-      - task: NuGetToolInstaller@1
+stages:
+- stage: Stage1  
+  displayName: Stage1
+  dependsOn: []
+  jobs:
+  - job: ShowVariables
+    displayName: Show Variables
+    steps: 
+    - task: NuGetToolInstaller@1
 
-  - stage: Stage2
-    displayName: Stage2
-    dependsOn: Stage1
-    condition: succeeded()
-    jobs:
-      steps:
-      - task: NuGetCommand@2
-        inputs:
-          restoreSolution: '$(solution)'
+- stage: Stage2
+  displayName: Stage2
+  dependsOn: Stage1
+  condition: succeeded()
+  jobs:
+  - job: ShowVariables
+    displayName: ShowVariables2
+    steps:
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
 
-  - stage: Build
-    displayName: Build
-    dependsOn: Stage2
-    condition: succeeded()
-    jobs:
-      steps:
-      - task: VSBuild@1
-        inputs:
-          solution: '$(solution)'
-          msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-          platform: '$(buildPlatform)'
-          configuration: '$(buildConfiguration)'
+- stage: Build
+  displayName: Build
+  dependsOn: Stage2
+  condition: succeeded()
+  jobs:
+  - job: ShowBuild
+    displayName: ShowBuildVariables
+    steps:
+    - task: VSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
 
-  - stage: Test
-    displayName: Test
-    dependsOn: Build
-    condition: succeeded()
-    jobs:
-      steps:
-      - task: VSTest@2
-        inputs:
-          testSelector: 'testAssemblies'
-          testAssemblyVer2: |
-            **\*test*.dll
-            !**\*TestAdapter.dll
-            !**\obj\**
-          searchFolder: '$(System.DefaultWorkingDirectory)'
+- stage: Test
+  displayName: Test
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: 
+    steps:
+    - task: VSTest@2
+      inputs:
+        testSelector: 'testAssemblies'
+        testAssemblyVer2: |
+          **\*test*.dll
+          !**\*TestAdapter.dll
+          !**\obj\**
+        searchFolder: '$(System.DefaultWorkingDirectory)'
